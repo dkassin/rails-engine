@@ -97,4 +97,35 @@ describe "Items API" do
     expect(Item.all.count).to eq(0)
     expect{Item.find(created_item.id)}.to raise_error(ActiveRecord::RecordNotFound)
   end
+
+  it "can update an existing item" do
+    id = create(:item).id
+    previous_name = Item.last.name
+    item_params = { name: "Kaw's statue" }
+    headers = {"CONTENT_TYPE" => "application/json"}
+
+    # We include this header to make sure that these params are passed as JSON rather than as plain text
+    patch "/api/v1/items/#{id}", headers: headers, params: JSON.generate({item: item_params})
+    item = Item.find_by(id: id)
+
+    expect(response).to be_successful
+    expect(item.name).to_not eq(previous_name)
+    expect(item.name).to eq("Kaw's statue")
+  end
+
+  it "can update an existing item" do
+    merchants = create_list(:merchant, 3)
+    id = create(:item).id
+    previous_merchant_id = Item.last.merchant_id
+    item_params = { merchant_id: 1324657 }
+    headers = {"CONTENT_TYPE" => "application/json"}
+
+    # We include this header to make sure that these params are passed as JSON rather than as plain text
+    patch "/api/v1/items/#{id}", headers: headers, params: JSON.generate({item: item_params})
+    item = Item.find_by(id: id)
+
+    expect(response).to_not be_successful
+    expect(item.name).to_not eq(previous_merchant_id)
+    expect(item.merchant_id).to_not eq(1324657)
+  end
 end
