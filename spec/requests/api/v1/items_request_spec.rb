@@ -55,7 +55,7 @@ describe "Items API" do
 
   end
 
-  it "can create a new item and destroy an item"  do
+  it "can create a new item"  do
     merchant = create(:merchant)
     item_params = ({
                     name: 'Cartman Figurine',
@@ -74,14 +74,27 @@ describe "Items API" do
     expect(created_item.description).to eq(item_params[:description])
     expect(created_item.unit_price).to eq(item_params[:unit_price])
     expect(created_item.merchant_id).to eq(item_params[:merchant_id])
-    binding.pry
+  end
+
+  it "can destroy an item item"  do
+    merchant = create(:merchant)
+    item_params = ({
+                    name: 'Cartman Figurine',
+                    description: 'A statue of the coon',
+                    unit_price: 314.12,
+                    merchant_id: merchant.id
+                  })
+    headers = {"CONTENT_TYPE" => "application/json"}
+
+    post "/api/v1/items", headers: headers, params: JSON.generate(item: item_params)
+
+    created_item = Item.last
     expect(Item.all.count).to eq(1)
+
     delete "/api/v1/items/#{created_item.id}"
 
     expect(response).to be_successful
     expect(Item.all.count).to eq(0)
     expect{Item.find(created_item.id)}.to raise_error(ActiveRecord::RecordNotFound)
   end
-
-
 end
