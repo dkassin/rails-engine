@@ -43,7 +43,7 @@ describe "Items API" do
 
     items[:data].each do |item|
       expect(item).to have_key(:type)
-      expect(item[:type]).to_not eq("Merchant")
+      expect(item[:type]).to_not eq("merchant")
     end
   end
 
