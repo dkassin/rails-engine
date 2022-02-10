@@ -16,6 +16,7 @@ class Api::V1::ItemsController < ApplicationController
   end
 
   def update
+    # Finds all valid merchant id's
     merchant_id = Merchant.all.map do |merchant|
                     merchant.id
                   end
@@ -28,6 +29,11 @@ class Api::V1::ItemsController < ApplicationController
     else
       render json: ItemSerializer.new(Item.update(params[:id], item_params))
     end
+  end
+
+  def find
+    client = find.where("name = ", params[:name])
+    render json: client
   end
 
 private
