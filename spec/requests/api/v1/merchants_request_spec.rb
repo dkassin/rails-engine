@@ -51,9 +51,27 @@ describe "Merchants API" do
 
     expect(merchant[:data]).to have_key(:id)
     expect(merchant[:data][:id].to_i).to be_an(Integer)
-    
+
     expect(merchant[:data][:attributes]).to have_key(:name)
     expect(merchant[:data][:attributes][:name]).to be_a(String)
 
+  end
+
+  it "find all merchants which match a search term" do
+    o_merchants = create_list(:merchant, 20)
+
+    get '/api/v1/merchants/find_all?name=inc'
+
+    merchants = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response).to be_successful
+    
+    merchants[:data].each do |merchant|
+      expect(merchant).to have_key(:id)
+      expect(merchant[:id].to_i).to be_an(Integer)
+
+      expect(merchant[:attributes]).to have_key(:name)
+      expect(merchant[:attributes][:name]).to be_a(String)
+    end
   end
 end

@@ -104,7 +104,6 @@ describe "Items API" do
     item_params = { name: "Kaw's statue" }
     headers = {"CONTENT_TYPE" => "application/json"}
 
-    # We include this header to make sure that these params are passed as JSON rather than as plain text
     patch "/api/v1/items/#{id}", headers: headers, params: JSON.generate({item: item_params})
     item = Item.find_by(id: id)
 
@@ -113,14 +112,13 @@ describe "Items API" do
     expect(item.name).to eq("Kaw's statue")
   end
 
-  it "can update an existing item" do
+  it "errors if trying to update with a non-existent merchant id" do
     merchants = create_list(:merchant, 3)
     id = create(:item).id
     previous_merchant_id = Item.last.merchant_id
     item_params = { merchant_id: 1324657 }
     headers = {"CONTENT_TYPE" => "application/json"}
 
-    # We include this header to make sure that these params are passed as JSON rather than as plain text
     patch "/api/v1/items/#{id}", headers: headers, params: JSON.generate({item: item_params})
     item = Item.find_by(id: id)
 
@@ -133,7 +131,6 @@ describe "Items API" do
     merchants = create_list(:merchant, 2)
     merchant = merchants.first
     items = create_list(:item, 5, merchant: merchant)
-    items_2 = create_list(:item, 5)
 
 
     get "/api/v1/merchants/#{merchant.id}/items"
@@ -158,5 +155,132 @@ describe "Items API" do
       expect(item[:attributes]).to have_key(:merchant_id)
       expect(item[:attributes][:merchant_id]).to be_a(Integer)
     end
+  end
+
+  it 'find a single item which matches a name search term' do
+    o_items = create_list(:item, 300)
+
+    get "/api/v1/items/find?name=shirt"
+
+    item = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response).to be_successful
+
+    expect(item[:data]).to have_key(:id)
+    expect(item[:data][:id].to_i).to be_an(Integer)
+
+    expect(item[:data]).to have_key(:type)
+    expect(item[:data][:type]).to be_an(String)
+
+    expect(item[:data][:attributes]).to have_key(:name)
+    expect(item[:data][:attributes][:name]).to be_a(String)
+
+    expect(item[:data][:attributes]).to have_key(:description)
+    expect(item[:data][:attributes][:description]).to be_a(String)
+
+    expect(item[:data][:attributes]).to have_key(:unit_price)
+    expect(item[:data][:attributes][:unit_price]).to be_a(Float)
+
+    expect(item[:data][:attributes]).to have_key(:merchant_id)
+    expect(item[:data][:attributes][:merchant_id]).to be_a(Integer)
+  end
+
+  it 'sad path when search name provides no items ' do
+    o_items = create_list(:item, 300)
+
+    get "/api/v1/items/find?name=hellomynameis"
+
+    item = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response).to be_successful
+
+    expect(item[:data]).to have_key(:message)
+    expect(item[:data][:message]).to be_an(String)
+    expect(item[:data][:message]).to eq("Merchant not found")
+
+  end
+
+  it 'find a single item which matches a min search term' do
+    o_items = create_list(:item, 10)
+
+    get "/api/v1/items/find?min_price=50"
+
+    item = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response).to be_successful
+
+    expect(item[:data]).to have_key(:id)
+    expect(item[:data][:id].to_i).to be_an(Integer)
+
+    expect(item[:data]).to have_key(:type)
+    expect(item[:data][:type]).to be_an(String)
+
+    expect(item[:data][:attributes]).to have_key(:name)
+    expect(item[:data][:attributes][:name]).to be_a(String)
+
+    expect(item[:data][:attributes]).to have_key(:description)
+    expect(item[:data][:attributes][:description]).to be_a(String)
+
+    expect(item[:data][:attributes]).to have_key(:unit_price)
+    expect(item[:data][:attributes][:unit_price]).to be_a(Float)
+
+    expect(item[:data][:attributes]).to have_key(:merchant_id)
+    expect(item[:data][:attributes][:merchant_id]).to be_a(Integer)
+  end
+
+  it 'find a single item which matches a max search term' do
+    o_items = create_list(:item, 10)
+
+    get "/api/v1/items/find?max_price=75"
+
+    item = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response).to be_successful
+
+    expect(item[:data]).to have_key(:id)
+    expect(item[:data][:id].to_i).to be_an(Integer)
+
+    expect(item[:data]).to have_key(:type)
+    expect(item[:data][:type]).to be_an(String)
+
+    expect(item[:data][:attributes]).to have_key(:name)
+    expect(item[:data][:attributes][:name]).to be_a(String)
+
+    expect(item[:data][:attributes]).to have_key(:description)
+    expect(item[:data][:attributes][:description]).to be_a(String)
+
+    expect(item[:data][:attributes]).to have_key(:unit_price)
+    expect(item[:data][:attributes][:unit_price]).to be_a(Float)
+
+    expect(item[:data][:attributes]).to have_key(:merchant_id)
+    expect(item[:data][:attributes][:merchant_id]).to be_a(Integer)
+  end
+
+  it 'find a single item which matches a min and max search term' do
+    o_items = create_list(:item, 10)
+
+    get "/api/v1/items/find?max_price=150&min_price=50"
+
+    item = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response).to be_successful
+
+    expect(item[:data]).to have_key(:id)
+    expect(item[:data][:id].to_i).to be_an(Integer)
+
+    expect(item[:data]).to have_key(:type)
+    expect(item[:data][:type]).to be_an(String)
+
+    expect(item[:data][:attributes]).to have_key(:name)
+    expect(item[:data][:attributes][:name]).to be_a(String)
+
+    expect(item[:data][:attributes]).to have_key(:description)
+    expect(item[:data][:attributes][:description]).to be_a(String)
+
+    expect(item[:data][:attributes]).to have_key(:unit_price)
+    expect(item[:data][:attributes][:unit_price]).to be_a(Float)
+
+    expect(item[:data][:attributes]).to have_key(:merchant_id)
+    expect(item[:data][:attributes][:merchant_id]).to be_a(Integer)
   end
 end
