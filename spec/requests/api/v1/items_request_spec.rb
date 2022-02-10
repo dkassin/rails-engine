@@ -137,12 +137,9 @@ describe "Items API" do
     expect(created_item.merchant_id).to eq(item_params[:merchant_id])
   end
 
-  it "returns an error if fields are missing"  do
+  it "returns an error if all fields are missing"  do
     merchant = create(:merchant)
     item_params = ({
-                    description: 'A statue of the coon',
-                    unit_price: 314.12,
-                    merchant_id: merchant.id
                   })
     headers = {"CONTENT_TYPE" => "application/json"}
 
@@ -153,7 +150,7 @@ describe "Items API" do
     expect(Item.all.count).to eq(0)
   end
 
-  it "returns an error if fields are missing"  do
+  it "returns an error if attributes are not correct"  do
     merchant = create(:merchant)
     item_params = ({
                     name: 'Cartman Figurine',
@@ -215,9 +212,41 @@ describe "Items API" do
     patch "/api/v1/items/#{id}", headers: headers, params: JSON.generate({item: item_params})
     item = Item.find_by(id: id)
 
+    expect(response.status).to eq(404)
     expect(response).to_not be_successful
     expect(item.name).to_not eq(previous_merchant_id)
     expect(item.merchant_id).to_not eq(1324657)
+  end
+
+  it "errors to update a string merchant id" do
+    merchants = create_list(:merchant, 3)
+    id = create(:item).id
+    previous_merchant_id = Item.last.merchant_id
+    item_params = { merchant_id: "1324657" }
+    headers = {"CONTENT_TYPE" => "application/json"}
+
+    patch "/api/v1/items/#{id}", headers: headers, params: JSON.generate({item: item_params})
+    item = Item.find_by(id: id)
+
+    expect(response.status).to eq(404)
+    expect(response).to_not be_successful
+    expect(item.name).to_not eq(previous_merchant_id)
+    expect(item.merchant_id).to_not eq(1324657)
+  end
+
+  it "errors with a bad integer id" do
+    merchants = create_list(:merchant, 3)
+    id = 5648613
+
+    previous_merchant_id = merchants.last.id
+    item_params = { merchant_id: previous_merchant_id}
+    headers = {"CONTENT_TYPE" => "application/json"}
+
+    patch "/api/v1/items/#{id}", headers: headers, params: JSON.generate({item: item_params})
+    item = Item.find_by(id: id)
+
+    expect(response.status).to eq(400)
+    expect(response).to_not be_successful
   end
 
   it "sends a list of Items for a given merchant" do
