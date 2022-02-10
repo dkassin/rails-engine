@@ -78,7 +78,7 @@ describe "Items API" do
     end
   end
 
-  it "fetch all items returns an array even if not items are found" do
+  it "fetch all items returns an array even if no items are found" do
 
 
     get '/api/v1/items'
@@ -86,6 +86,7 @@ describe "Items API" do
     items = JSON.parse(response.body, symbolize_names: true)
 
     expect(response).to be_successful
+
     expect(items[:data].count).to eq(0)
     expect(items[:data]).to be_an(Array)
   end
@@ -134,6 +135,38 @@ describe "Items API" do
     expect(created_item.description).to eq(item_params[:description])
     expect(created_item.unit_price).to eq(item_params[:unit_price])
     expect(created_item.merchant_id).to eq(item_params[:merchant_id])
+  end
+
+  it "returns an error if fields are missing"  do
+    merchant = create(:merchant)
+    item_params = ({
+                    description: 'A statue of the coon',
+                    unit_price: 314.12,
+                    merchant_id: merchant.id
+                  })
+    headers = {"CONTENT_TYPE" => "application/json"}
+
+    post "/api/v1/items", headers: headers, params: JSON.generate(item: item_params)
+
+    created_item = Item.last
+    expect(response.status).to eq(400)
+    expect(Item.all.count).to eq(0)
+  end
+
+  it "returns an error if fields are missing"  do
+    merchant = create(:merchant)
+    item_params = ({
+                    name: 'Cartman Figurine',
+                    description: 'A statue of the coon',
+                    unit_price: "four" ,
+                    merchant_id: merchant.id
+                  })
+    headers = {"CONTENT_TYPE" => "application/json"}
+
+    post "/api/v1/items", headers: headers, params: JSON.generate(item: item_params)
+
+    expect(response.status).to eq(400)
+    expect(Item.all.count).to eq(0)
   end
 
   it "can destroy an item item"  do

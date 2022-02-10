@@ -8,7 +8,12 @@ class Api::V1::ItemsController < ApplicationController
   end
 
   def create
-    render json: ItemSerializer.new(Item.create(item_params)), status: :created
+    item = Item.new(item_params)
+    if item.save
+      render json: ItemSerializer.new(item), status: :created
+    else
+      render json: JSON.generate({error: 'error'}), status: 400
+    end
   end
 
   def destroy
@@ -29,11 +34,6 @@ class Api::V1::ItemsController < ApplicationController
     else
       render json: ItemSerializer.new(Item.update(params[:id], item_params))
     end
-  end
-
-  def find
-    client = find.where("name = ", params[:name])
-    render json: client
   end
 
 private
