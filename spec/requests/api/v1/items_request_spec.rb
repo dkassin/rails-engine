@@ -361,6 +361,17 @@ describe "Items API" do
     expect(response.status).to eq(400)
   end
 
+  it 'returns an error when putting a max price less then 0' do
+    o_items = create_list(:item, 10)
+
+    get "/api/v1/items/find?max_price=-5"
+
+    item = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response).to_not be_successful
+    expect(response.status).to eq(400)
+  end
+
   it 'returns an error when putting a min price and a name' do
     o_items = create_list(:item, 10)
 
