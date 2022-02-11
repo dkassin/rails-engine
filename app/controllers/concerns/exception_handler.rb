@@ -11,8 +11,7 @@ module ExceptionHandler
       render json: JSON.generate({error: 'error'}), status: 400
     end
     rescue_from ActiveRecord::RecordNotFound do |e|
-      render json: JSON.generate({error: 'error'}), status: 400
+      render json: JSON.generate({error: 'error'}), status: 404
     end
-
   end
 end

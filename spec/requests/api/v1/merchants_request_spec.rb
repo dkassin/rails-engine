@@ -123,4 +123,22 @@ describe "Merchants API" do
       expect(merchant[:attributes][:name]).to be_a(String)
     end
   end
+
+  it "returns a message of not found when no mechant can be found" do
+    o_merchants = create_list(:merchant, 20)
+
+    get '/api/v1/merchants/find_all?name=hellothisshouldneverpass'
+
+    merchants = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response).to be_successful
+
+    merchants[:data].each do |merchant|
+      expect(merchant).to have_key(:id)
+      expect(merchant[:id].to_i).to be_an(Integer)
+
+      expect(merchant[:attributes]).to have_key(:name)
+      expect(merchant[:attributes][:name]).to be_a(String)
+    end
+  end
 end

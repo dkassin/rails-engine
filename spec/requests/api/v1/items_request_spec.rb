@@ -245,7 +245,7 @@ describe "Items API" do
     patch "/api/v1/items/#{id}", headers: headers, params: JSON.generate({item: item_params})
     item = Item.find_by(id: id)
 
-    expect(response.status).to eq(400)
+    expect(response.status).to eq(404)
     expect(response).to_not be_successful
   end
 
@@ -318,7 +318,7 @@ describe "Items API" do
 
     expect(item[:data]).to have_key(:message)
     expect(item[:data][:message]).to be_an(String)
-    expect(item[:data][:message]).to eq("Merchant not found")
+    expect(item[:data][:message]).to eq("Item not found")
 
   end
 
@@ -350,32 +350,52 @@ describe "Items API" do
     expect(item[:data][:attributes][:merchant_id]).to be_a(Integer)
   end
 
-  it 'find a single item which matches a min search term' do
+  it 'returns an error when putting a min price less then 0' do
     o_items = create_list(:item, 10)
 
-    get "/api/v1/items/find?min_price=50"
+    get "/api/v1/items/find?min_price=-5"
+
+    item = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response).to_not be_successful
+    expect(response.status).to eq(400)
+  end
+
+  it 'returns an error when putting a min price and a name' do
+    o_items = create_list(:item, 10)
+
+    get "/api/v1/items/find?name=ring&min_price=50"
+
+    item = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response).to_not be_successful
+    expect(response.status).to eq(400)
+  end
+
+  it 'returns an error when putting a max price and a name' do
+    o_items = create_list(:item, 10)
+
+    get "/api/v1/items/find?name=ring&max_price=50"
+
+    item = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response).to_not be_successful
+    expect(response.status).to eq(400)
+  end
+
+  it 'find a single item which matches a max search term' do
+    o_items = create_list(:item, 2)
+
+    get "/api/v1/items/find?max_price=1"
 
     item = JSON.parse(response.body, symbolize_names: true)
 
     expect(response).to be_successful
 
-    expect(item[:data]).to have_key(:id)
-    expect(item[:data][:id].to_i).to be_an(Integer)
+    expect(item[:data]).to have_key(:message)
+    expect(item[:data][:message]).to be_an(String)
+    expect(item[:data][:message]).to eq("Item not found")
 
-    expect(item[:data]).to have_key(:type)
-    expect(item[:data][:type]).to be_an(String)
-
-    expect(item[:data][:attributes]).to have_key(:name)
-    expect(item[:data][:attributes][:name]).to be_a(String)
-
-    expect(item[:data][:attributes]).to have_key(:description)
-    expect(item[:data][:attributes][:description]).to be_a(String)
-
-    expect(item[:data][:attributes]).to have_key(:unit_price)
-    expect(item[:data][:attributes][:unit_price]).to be_a(Float)
-
-    expect(item[:data][:attributes]).to have_key(:merchant_id)
-    expect(item[:data][:attributes][:merchant_id]).to be_a(Integer)
   end
 
   it 'find a single item which matches a max search term' do
