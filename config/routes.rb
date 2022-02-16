@@ -5,6 +5,7 @@ Rails.application.routes.draw do
       resources :merchants do
         get :find_all, on: :collection, controller: :searches
         resources :items, only: [:index], controller: :merchant_items
+        get :most_items, on: :collection, controller: :merchants
       end
       resources :items do
         get :find, on: :collection, controller: :searches
